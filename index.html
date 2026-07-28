@@ -192,6 +192,19 @@
   .aim-chip:has(input:checked) .aim-chip-label { color: var(--teal); }
   .aim-chip-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; opacity: 0.75; }
   .input-group input[type=number] { background-image: none; padding-right: 12px; }
+  /* ─── ZONE CHIPS (A/B/C/D) ─── */
+  .zone-chip-check {
+    width: 26px; height: 26px; min-width: 26px; border-radius: 6px;
+    border: 2px solid var(--border); margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; color: var(--border);
+    transition: background .15s, border-color .15s, color .15s;
+  }
+  .aim-chip:has(input[name="zone"]:checked) .zone-chip-check {
+    background: var(--teal); border-color: var(--teal); color: white;
+  }
+  .aim-chip.zone-na { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+  .aim-chip.zone-na .zone-chip-check { border-color: var(--border); background: var(--bg2); color: var(--text-muted); }
   /* ─── DEPTH SLIDER ─── */
   .depth-slider-wrap { margin-top: 6px; }
   .depth-val-row { display: flex; align-items: baseline; gap: 5px; margin-bottom: 10px; }
@@ -519,6 +532,15 @@
         </div>
       </div>
 
+      <!-- Target Monitoring Zone — A/B/C/D -->
+      <div class="aims-row">
+        <div class="input-group">
+          <label>พื้นที่เป้าหมายในการติดตาม</label>
+          <span class="label-en">Target Monitoring Zone เลือกได้มากกว่า 1</span>
+          <div class="aims-chips" id="zone-options"></div>
+        </div>
+      </div>
+
       <button class="btn-run" onclick="showResults()">
         <svg viewBox="0 0 20 20"><path d="M8 4l8 6-8 6V4z"/></svg>
         แสดงผลลัพธ์ / Show Applicable Technologies
@@ -542,6 +564,7 @@
           <div class="s-chip"><span class="s-chip-label">การใช้พื้นที่</span><span class="s-chip-val" id="out-landuse">—</span></div>
           <div class="s-chip"><span class="s-chip-label">กลุ่มเทคโนโลยี</span><span class="s-chip-val" id="out-package">—</span></div>
           <div class="s-chip"><span class="s-chip-label">วัตถุประสงค์</span><span class="s-chip-val" id="out-aims">—</span></div>
+          <div class="s-chip"><span class="s-chip-label">พื้นที่เป้าหมาย</span><span class="s-chip-val" id="out-zones">—</span></div>
         </div>
       </div>
 
@@ -669,6 +692,22 @@ const LANDUSE_OFFSHORE = [
   { value:"OffshorePetroleum", label:"เขตสัมปทานปิโตรเลียมทะเล (Offshore Petroleum Concession Zone)" },
 ];
 
+const ALL_ZONES = [
+  { value:"A", label:"พื้นที่ชั้นบรรยากาศ",       desc:"ตรวจวัดก๊าซและองค์ประกอบในชั้นบรรยากาศเหนือพื้นที่โครงการ",  for:"both" },
+  { value:"B", label:"พื้นที่บริเวณใกล้ผิวดิน",    desc:"ตรวจติดตามการเปลี่ยนแปลงใกล้ผิวดิน ชั้นดิน และน้ำบาดาล",    for:"onshore" },
+  { value:"C", label:"พื้นที่บริเวณใกล้พื้นทะเล", desc:"ตรวจติดตามการเปลี่ยนแปลงในบริเวณพื้นทะเลและน้ำทะเล",         for:"offshore" },
+  { value:"D", label:"พื้นที่ใต้ผิวดิน",            desc:"ตรวจติดตามชั้นหินกักเก็บ ชั้นหินปิดกั้น และบริเวณรอบหลุมเจาะ", for:"both" },
+];
+
+function updateZoneOptions() {
+  const isOffshore = document.querySelector('input[name="r-location"][value="Offshore"]').checked;
+  const container = document.getElementById('zone-options');
+  container.innerHTML = ALL_ZONES.map(o => {
+    const na = (isOffshore && o.for === "onshore") || (!isOffshore && o.for === "offshore");
+    return `<label class="aim-chip${na ? ' zone-na' : ''}"><input type="checkbox" name="zone" value="${o.value}"${na ? ' disabled' : ''}><div class="zone-chip-check">${o.value}</div><div class="aim-chip-body"><span class="aim-chip-label">${o.label}</span><span class="aim-chip-desc">${o.desc}</span></div></label>`;
+  }).join('');
+}
+
 function updateLandUseOptions() {
   const isOffshore = document.querySelector('input[name="r-location"][value="Offshore"]').checked;
   const opts = isOffshore ? LANDUSE_OFFSHORE : LANDUSE_ONSHORE;
@@ -691,6 +730,7 @@ function toggleWaterDepth() {
     s.style.background = `linear-gradient(to right, var(--teal) 0%, var(--bg2) 0%)`;
   }
   updateLandUseOptions();
+  updateZoneOptions();
 }
 
 
@@ -801,6 +841,7 @@ function showResults() {
   const landuses = [...document.querySelectorAll('input[name="r-landuse"]:checked')].map(c => c.value);
   const pkg     = getRadio("r-package");
   const aims    = [...document.querySelectorAll('input[name="aim"]:checked')].map(c => c.value);
+  const zones   = [...document.querySelectorAll('input[name="zone"]:checked')].map(c => c.value);
 
   document.getElementById("out-location").textContent = loc;
   document.getElementById("out-type").textContent     = type;
@@ -809,6 +850,7 @@ function showResults() {
   document.getElementById("out-landuse").textContent  = landuses.length ? landuses.join(", ") : "—";
   document.getElementById("out-package").textContent  = pkg;
   document.getElementById("out-aims").textContent     = aims.length ? aims.join(", ") : "—";
+  document.getElementById("out-zones").textContent    = zones.length ? zones.join(", ") : "—";
 
   const isOffshore = loc === "Offshore" || loc === "Both";
   const isOnshore  = loc === "Onshore"  || loc === "Both";
@@ -998,8 +1040,8 @@ window.addEventListener('load', function() {
   if (ws) updateWaterDepth(ws);
   toggleWaterDepth();
   updateLandUseOptions();
+  updateZoneOptions();
 });
 </script>
 </body>
 </html>
-
