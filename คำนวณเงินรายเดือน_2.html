@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คำนวณเงินรายเดือน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F5F1;
+    --card:#FFFFFF;
+    --border:#E4E1D8;
+    --text:#22201A;
+    --text-soft:#75705F;
+    --accent:#B8894B;
+    --accent-deep:#8C6432;
+    --neg:#B04A3F;
+    --pos:#3F7A5C;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    font-family:'Sarabun',sans-serif;
+    color:var(--text);
+    padding:20px 12px 60px;
+  }
+  .wrap{max-width:640px;margin:0 auto;}
+  h1{font-size:19px;font-weight:600;margin:0 0 4px;}
+  .top-sub{font-size:13px;color:var(--text-soft);margin-bottom:16px;}
+  .year-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .year-tabs{display:flex;flex-wrap:wrap;gap:6px;flex:1;}
+  .year-chip{
+    background:var(--card);border:1px solid var(--border);border-radius:8px;
+    padding:8px 10px 8px 12px;font-size:13px;font-weight:500;color:var(--text-soft);
+    cursor:pointer;font-family:'IBM Plex Mono',monospace;
+    display:flex;align-items:center;gap:6px;
+  }
+  .year-chip:hover{border-color:var(--accent-deep);}
+  .year-chip.active{background:var(--text);border-color:var(--text);color:var(--accent);}
+  .year-chip .yc-del{
+    font-family:'Sarabun',sans-serif;font-size:14px;line-height:1;
+    color:var(--text-soft);opacity:0.5;padding:0 2px;
+  }
+  .year-chip:hover .yc-del{opacity:1;}
+  .year-chip.active .yc-del{color:var(--accent);}
+  .year-chip.confirm-del{background:var(--neg);border-color:var(--neg);color:#fff;}
+  .year-chip.confirm-del .yc-del{color:#fff;opacity:1;}
+  .add-year-btn{
+    background:none;border:1px dashed var(--accent-deep);color:var(--accent-deep);
+    font-size:13px;padding:8px 12px;border-radius:8px;cursor:pointer;
+    font-family:'Sarabun',sans-serif;flex-shrink:0;
+  }
+  .add-year-btn:hover{background:rgba(184,137,75,0.08);}
+  .save-btn{
+    display:block;width:100%;
+    background:var(--accent-deep);color:#fff;border:none;
+    font-size:14px;font-weight:600;font-family:'Sarabun',sans-serif;
+    padding:11px;border-radius:10px;cursor:pointer;margin-bottom:14px;
+    transition:background 0.2s;
+  }
+  .save-btn:hover{background:var(--accent);}
+  .save-btn.saved{background:var(--pos);}
+  .result{
+    background:var(--text);
+    border-radius:12px;
+    padding:20px 22px;
+    color:#fff;
+    margin-bottom:20px;
+    position:sticky;
+    top:10px;
+    z-index:5;
+  }
+  .result .lbl{font-size:12.5px;color:#C9C5B8;margin-bottom:4px;}
+  .result .val{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:600;color:var(--accent);}
+  .result .val.neg{color:#E58B7F;}
+  .result .breakdown{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:12px;color:#B9B5A8;}
+  .result .breakdown span b{color:#EDEAE0;font-weight:500;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:14px;}
+  .card h2{font-size:14px;font-weight:600;margin:0 0 4px;display:flex;align-items:center;justify-content:space-between;}
+  .card .sub{font-size:11.5px;color:var(--text-soft);margin-bottom:12px;}
+  .toggle-wrap{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:400;color:var(--text-soft);}
+  .field-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .field-row:last-child{margin-bottom:0;}
+  .field-row label{flex:1;font-size:13px;color:var(--text-soft);}
+  input[type=text],input[type=number]{
+    font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--text);
+    background:var(--bg);border:1px solid var(--border);border-radius:6px;
+    padding:6px 8px;width:130px;text-align:right;outline:none;
+  }
+  input[type=text].name-input{font-family:'Sarabun',sans-serif;text-align:left;width:100%;flex:1;}
+  select{
+    font-family:'Sarabun',sans-serif;font-size:13px;color:var(--text);
+    background:var(--bg);border:1px solid var(--border);border-radius:6px;
+    padding:6px 6px;outline:none;
+  }
+  input:focus,select:focus{border-color:var(--accent-deep);}
+  .list-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .list-row input[type=number]{width:100px;}
+  .period-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+  .period-row .to-sep{font-size:12px;color:var(--text-soft);}
+  .period-row input[type=number]{width:95px;}
+  .del{background:none;border:none;color:var(--neg);font-size:18px;cursor:pointer;opacity:0.6;padding:2px 4px;}
+  .del:hover{opacity:1;}
+  .add-btn{
+    background:none;border:1px dashed var(--accent-deep);color:var(--accent-deep);
+    font-size:12.5px;padding:6px 12px;border-radius:6px;cursor:pointer;
+    font-family:'Sarabun',sans-serif;margin-top:4px;
+  }
+  .add-btn:hover{background:rgba(184,137,75,0.08);}
+  .subline{display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-soft);padding:3px 0;}
+  .subline b{font-family:'IBM Plex Mono',monospace;color:var(--text);font-weight:500;}
+  .divider{border-top:1px solid var(--border);margin:10px 0;}
+  .switch{position:relative;width:34px;height:19px;background:var(--border);border-radius:20px;cursor:pointer;flex-shrink:0;}
+  .switch.on{background:var(--pos);}
+  .switch::after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;background:#fff;border-radius:50%;transition:left 0.15s;}
+  .switch.on::after{left:17px;}
+  .toggle-row{flex-wrap:wrap;row-gap:8px;}
+  .toggle-row label{flex:1 1 220px;}
+  .toggle-row .toggle-wrap{flex-shrink:0;white-space:nowrap;}
+  .hint{font-size:11px;color:var(--text-soft);margin-top:6px;line-height:1.5;}
+  .total-row{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;}
+  .total-row b{font-family:'IBM Plex Mono',monospace;font-weight:500;}
+  .subhead{font-size:12.5px;font-weight:600;color:var(--text-soft);margin:12px 0 6px;text-transform:uppercase;letter-spacing:0.4px;}
+  .subhead:first-of-type{margin-top:0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>คำนวณเงินรายเดือน</h1>
+  <div class="top-sub">กำหนดเงินเดือน/รายได้เสริมเป็นช่วงเวลาได้ เผื่อเปลี่ยนงานหรือรายได้ไม่เท่ากันแต่ละช่วง</div>
+
+  <div class="year-row">
+    <div class="year-tabs" id="yearTabs"></div>
+    <button class="add-year-btn" id="addYearBtn">+ ปี</button>
+  </div>
+  <div class="hint" id="yearCopyHint" style="margin:-8px 0 14px;text-align:center;"></div>
+
+  <button class="save-btn" id="saveBtn">บันทึก</button>
+
+  <div class="result">
+    <div class="lbl">เหลือสุทธิต่อเดือน</div>
+    <div class="val" id="netResult">0</div>
+    <div class="breakdown" id="breakdown"></div>
+  </div>
+
+  <div class="card">
+    <h2>เงินเดือน</h2>
+    <div class="sub">กำหนดเป็นช่วงเดือน เช่น ม.ค.-ก.พ. ยอด A, ก.พ.-ธ.ค. ยอด B — วนซ้ำทุกปี</div>
+    <div id="salaryList"></div>
+    <button class="add-btn" id="addSalary">+ เพิ่มช่วงเวลา</button>
+  </div>
+
+  <div class="card">
+    <h2>รายได้เสริม</h2>
+    <div class="sub">ช่วงไหนไม่มีรายได้เสริมก็ไม่ต้องเพิ่มช่วงครอบคลุมเดือนนั้น</div>
+    <div id="extraList"></div>
+    <button class="add-btn" id="addExtra">+ เพิ่มช่วงเวลา</button>
+  </div>
+
+  <div class="card">
+    <h2>รายจ่ายคงที่</h2>
+    <div id="fixList"></div>
+    <button class="add-btn" id="addFix">+ เพิ่มรายการ</button>
+    <div class="divider"></div>
+    <div class="total-row"><span>รวม Fix Cost</span><b id="fixTotal">0</b></div>
+  </div>
+
+  <div class="card">
+    <h2>ค่ากินข้าว / ใช้จ่ายรายวัน</h2>
+    <div class="field-row">
+      <label>ต่อเดือน</label>
+      <input type="number" id="foodCost" step="1">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ภาษี (หารเฉลี่ยเป็นรายเดือนอัตโนมัติ)
+      <span class="toggle-wrap"><span id="taxSwitch" class="switch on"></span>รวมในคำนวณ</span>
+    </h2>
+    <div class="field-row">
+      <label>รายได้รวมทั้งปี (auto = เงินเดือนหลัก x12 ปรับได้)</label>
+      <input type="number" id="taxIncome" step="1000">
+    </div>
+    <div class="field-row toggle-row">
+      <label>ลดหย่อนรวม (ประกันสังคม/ประกันชีวิต/SSF/อื่นๆ)</label>
+      <span class="toggle-wrap"><span id="taxDeductModeSwitch" class="switch"></span>แยกย่อย</span>
+    </div>
+    <div class="field-row" id="taxDeductTotalRow">
+      <label>กรอกยอดรวม</label>
+      <input type="number" id="taxDeduct" step="100">
+    </div>
+    <div id="taxDeductItemFields" style="display:none;">
+      <div class="field-row"><label>ประกันสังคม (สูงสุด 875/เดือน)</label><input type="number" id="taxSSF" step="10"></div>
+      <div class="field-row"><label>ประกันชีวิต/สุขภาพ (ต่อเดือน)</label><input type="number" id="taxLife" step="50"></div>
+      <div class="field-row"><label>SSF/RMF/PVD (ต่อเดือน)</label><input type="number" id="taxFund" step="50"></div>
+      <div class="field-row"><label>อื่นๆ (ดอกเบี้ยบ้าน ฯลฯ ต่อเดือน)</label><input type="number" id="taxOther" step="50"></div>
+      <div class="subline"><span>รวมลดหย่อนแยกย่อย/เดือน</span><b id="taxDeductSum">0</b></div>
+      <div class="hint">ระบบจะคูณ 12 ให้อัตโนมัติตอนคำนวณภาษีทั้งปี</div>
+    </div>
+    <div class="divider"></div>
+    <div class="subline"><span>เงินได้สุทธิที่ต้องเสียภาษี</span><b id="taxTaxable">0</b></div>
+    <div class="subline"><span>ภาษีทั้งปี</span><b id="taxAnnual">0</b></div>
+    <div class="total-row"><span>ภาษีเฉลี่ยต่อเดือน</span><b id="taxMonthly">0</b></div>
+  </div>
+
+  <div class="card">
+    <h2>ค่ารถ (ต่อเดือน)
+      <span class="toggle-wrap"><span id="carSwitch" class="switch"></span>รวมในคำนวณ</span>
+    </h2>
+    <div class="field-row"><label>ราคารถ</label><input type="number" id="carPrice" step="1000"></div>
+    <div class="field-row"><label>เงินดาวน์</label><input type="number" id="carDown" step="1000"></div>
+    <div class="field-row"><label>ดอกเบี้ย flat rate ต่อปี (%)</label><input type="number" id="carRate" step="0.1"></div>
+    <div class="field-row"><label>ผ่อนกี่เดือน</label><input type="number" id="carMonths" step="1"></div>
+    <div class="field-row toggle-row">
+      <label>ค่าน้ำมัน+ประกัน+ดูแลรักษา (ต่อเดือน)</label>
+      <span class="toggle-wrap"><span id="carEstSwitch" class="switch on"></span>ประมาณการ</span>
+    </div>
+    <div id="carEstFields">
+      <div class="field-row"><label>ระยะทางต่อวัน (กม.)</label><input type="number" id="estKm" step="1"></div>
+      <div class="field-row"><label>วันที่ใช้รถต่อเดือน</label><input type="number" id="estDays" step="1"></div>
+      <div class="field-row"><label>อัตราสิ้นเปลือง (กม./ลิตร)</label><input type="number" id="estKmpl" step="0.5"></div>
+      <div class="field-row"><label>ราคาน้ำมัน (บาท/ลิตร)</label><input type="number" id="estFuelPrice" step="0.5"></div>
+      <div class="field-row toggle-row">
+        <label>ค่าประกันชั้น 1 (ต่อเดือน)</label>
+        <span class="toggle-wrap"><span id="insEstSwitch" class="switch on"></span>ประมาณการ</span>
+      </div>
+      <div id="insEstFields">
+        <div class="field-row"><label>เบี้ยประกันชั้น 1 ต่อปี (บาท)</label><input type="number" id="insAnnual" step="100"></div>
+        <div class="subline"><span>ประมาณการค่าประกัน/เดือน</span><b id="insEstOut">0</b></div>
+        <div class="hint">ค่าเริ่มต้นอ้างอิงจากราคาประกันจริงที่ Honda เสนอให้ลูกค้า City e:HEV (26,625-28,793 บาท/ปี) ใส่ยอดที่คุณได้ใบเสนอราคาจริงแทนได้</div>
+      </div>
+      <div class="field-row" id="insManualRow" style="display:none;">
+        <label>กรอกเอง (ต่อเดือน)</label>
+        <input type="number" id="estInsurance" step="50">
+      </div>
+
+      <div class="field-row toggle-row">
+        <label>ค่าบำรุงรักษาเฉลี่ย (ต่อเดือน)</label>
+        <span class="toggle-wrap"><span id="maintEstSwitch" class="switch on"></span>ประมาณการ</span>
+      </div>
+      <div id="maintEstFields">
+        <div class="field-row"><label>ค่าอะไหล่เฉลี่ย (บาท/กม.)</label><input type="number" id="maintCostPerKm" step="0.01"></div>
+        <div class="subline"><span>ประมาณการค่าบำรุงรักษา/เดือน</span><b id="maintEstOut">0</b></div>
+        <div class="hint">ค่าเริ่มต้นอ้างอิงค่าอะไหล่สะสมจริงของ City e:HEV ตลอด 100,000 กม.แรก = 19,366 บาท (ช่วงฟรีค่าแรง 5 ปี/100,000 กม. จึงเหลือแค่ค่าอะไหล่) เฉลี่ย ~0.19 บาท/กม. คูณกับระยะทางที่ใช้จริงต่อเดือนด้านบน</div>
+      </div>
+      <div class="field-row" id="maintManualRow" style="display:none;">
+        <label>กรอกเอง (ต่อเดือน)</label>
+        <input type="number" id="estMaintenance" step="50">
+      </div>
+      <div class="subline"><span>ค่าน้ำมัน/เดือน</span><b id="estFuelCost">0</b></div>
+      <div class="hint">ค่าเริ่มต้นอิงอัตราสิ้นเปลืองจริงของ City e:HEV SV (~23 กม./ลิตร) และราคาน้ำมันปัจจุบัน ปรับตัวเลขได้ตามการใช้งานจริง</div>
+    </div>
+    <div class="field-row" id="carRunningManualRow" style="display:none;">
+      <label>กรอกเอง (ต่อเดือน)</label>
+      <input type="number" id="carRunning" step="100">
+    </div>
+    <div class="divider"></div>
+    <div class="subline"><span>ค่างวดผ่อนรถ</span><b id="carInstallment">0</b></div>
+    <div class="total-row"><span>รวมค่ารถต่อเดือน</span><b id="carMonthlyTotal">0</b></div>
+    <div class="hint">ปิดสวิตช์ไว้ถ้ายังไม่ได้ซื้อรถ — จะไม่ถูกหักออกจากยอดคงเหลือด้านบน</div>
+  </div>
+
+</div>
+
+<script>
+const STORAGE_PREFIX = 'finance-simple-data-v2-y';
+const YEAR_INDEX_KEY = 'finance-simple-year-index';
+const MONTH_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+function fmt(n){
+  n = Math.round((n||0)*100)/100;
+  return n.toLocaleString('th-TH', {minimumFractionDigits:0, maximumFractionDigits:2});
+}
+
+let currentMonth = new Date().getMonth()+1;
+let currentYear = new Date().getFullYear()+543;
+let knownYears = [];
+
+let data = {
+  salaryPeriods: [{from:1, to:12, amount:39600}],
+  extraPeriods: [{from: new Date().getMonth()+1, to: ((new Date().getMonth()+4)%12)+1, amount:11000}],
+  fixCosts: [
+    {name:'Google One', amount:750},
+    {name:'ค่าเน็ตมือถือ', amount:300},
+    {name:'claude.ai', amount:723},
+    {name:'ค่าประกัน', amount:2376},
+    {name:'ค่าไฟ', amount:2000},
+    {name:'ค่าบ้าน', amount:7000},
+    {name:'ค่าผ่อนโทรศัพท์', amount:887.39},
+    {name:'HBO', amount:121.49},
+    {name:'ค่าเน็ตบ้าน', amount:535},
+    {name:'YouTube Premium', amount:159},
+    {name:'ค่าส่วนกลาง', amount:1500},
+    {name:'ภาษี', amount:1500}
+  ],
+  foodCost: 7500,
+  taxIncome: 475200,
+  taxDeduct: 9000,
+  taxDeductMode: 'total',
+  taxSSF: 875,
+  taxLife: 0,
+  taxFund: 0,
+  taxOther: 0,
+  taxOn: true,
+  carPrice: 689000,
+  carDown: 105000,
+  carRate: 3.5,
+  carMonths: 72,
+  carRunning: 2600,
+  carRunningMode: 'estimate',
+  estKm: 55,
+  estDays: 22,
+  estKmpl: 23,
+  estFuelPrice: 36,
+  estInsurance: 1500,
+  estMaintenance: 700,
+  insMode: 'estimate',
+  insAnnual: 27700,
+  maintMode: 'estimate',
+  maintCostPerKm: 0.19,
+  carOn: false
+};
+
+async function loadYearIndex(){
+  try{
+    const res = await window.storage.get(YEAR_INDEX_KEY, false);
+    if(res && res.value) knownYears = JSON.parse(res.value);
+  }catch(e){}
+  if(!knownYears.includes(currentYear)) knownYears.push(currentYear);
+}
+async function saveYearIndex(){
+  try{ await window.storage.set(YEAR_INDEX_KEY, JSON.stringify(knownYears), false); }catch(e){}
+}
+
+async function loadData(){
+  await loadYearIndex();
+  await loadYear(currentYear, false);
+  render();
+}
+
+let pendingDeleteYear = null;
+
+function renderYearTabs(){
+  const wrap = document.getElementById('yearTabs');
+  wrap.innerHTML = '';
+  const years = knownYears.slice().sort((a,b)=>a-b);
+  years.forEach(y=>{
+    const btn = document.createElement('button');
+    const isConfirm = pendingDeleteYear===y;
+    btn.className = 'year-chip'+(y===currentYear?' active':'')+(isConfirm?' confirm-del':'');
+    btn.innerHTML = `<span>${y}</span>`+(years.length>1?`<span class="yc-del" data-y="${y}" title="ลบปีนี้">${isConfirm?'ยืนยัน?':'&times;'}</span>`:'');
+    btn.addEventListener('click', e=>{
+      if(e.target.classList.contains('yc-del')){
+        e.stopPropagation();
+        const y2 = +e.target.dataset.y;
+        if(pendingDeleteYear===y2){ deleteYear(y2); }
+        else{ pendingDeleteYear = y2; renderYearTabs(); setTimeout(()=>{ if(pendingDeleteYear===y2){ pendingDeleteYear=null; renderYearTabs(); } }, 3000); }
+        return;
+      }
+      if(y!==currentYear) switchYear(y);
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+async function deleteYear(year){
+  try{ await window.storage.delete(STORAGE_PREFIX+year, false); }catch(e){}
+  knownYears = knownYears.filter(y=>y!==year);
+  await saveYearIndex();
+  pendingDeleteYear = null;
+  if(year===currentYear){
+    const next = knownYears.length ? knownYears.sort((a,b)=>b-a)[0] : (new Date().getFullYear()+543);
+    await loadYear(next, true);
+  } else {
+    renderYearTabs();
+  }
+}
+
+async function switchYear(year){
+  if(dirty) await persistData();
+  await loadYear(year, true);
+}
+
+async function loadYear(year, isSwitch){
+  let loaded = null;
+  try{
+    const res = await window.storage.get(STORAGE_PREFIX+year, false);
+    if(res && res.value) loaded = JSON.parse(res.value);
+  }catch(e){}
+  let copied = false;
+  if(loaded){
+    data = Object.assign({}, data, loaded);
+  } else if(knownYears.length){
+    const prior = knownYears.filter(y=>y<year).sort((a,b)=>b-a)[0];
+    if(prior!==undefined){
+      try{
+        const res = await window.storage.get(STORAGE_PREFIX+prior, false);
+        if(res && res.value){ data = Object.assign({}, data, JSON.parse(res.value)); copied = true; }
+      }catch(e){}
+    }
+  }
+  currentYear = year;
+  if(!knownYears.includes(year)){ knownYears.push(year); saveYearIndex(); }
+  renderYearTabs();
+  document.getElementById('yearCopyHint').textContent = copied ? 'คัดลอกข้อมูลจากปีล่าสุดที่มีมาให้ ปรับได้ตามจริง' : '';
+  setDirty(false);
+  if(isSwitch){
+    fillInputs();
+    refreshSalary();
+    refreshExtra();
+    renderFixList();
+    computeAll();
+  }
+}
+
+let dirty = false;
+function setDirty(v){
+  dirty = v;
+  const btn = document.getElementById('saveBtn');
+  btn.classList.toggle('saved', !v);
+  btn.textContent = v ? 'บันทึก' : 'บันทึกแล้ว';
+}
+function saveData(){
+  setDirty(true);
+}
+async function persistData(){
+  try{ await window.storage.set(STORAGE_PREFIX+currentYear, JSON.stringify(data), false); }catch(e){}
+  setDirty(false);
+}
+
+function periodContains(p, month){
+  const from = +p.from, to = +p.to;
+  if(from <= to) return month>=from && month<=to;
+  return month>=from || month<=to;
+}
+function amountForMonth(periods, month){
+  let val = 0;
+  for(const p of periods){ if(periodContains(p, month)) val = parseFloat(p.amount)||0; }
+  return val;
+}
+
+function calcThaiTax(taxable){
+  const brackets = [
+    [150000,0],[300000,0.05],[500000,0.10],[750000,0.15],
+    [1000000,0.20],[2000000,0.25],[5000000,0.30],[Infinity,0.35]
+  ];
+  let tax=0, prev=0;
+  for(const [upper,rate] of brackets){
+    if(taxable>prev){ tax += (Math.min(taxable,upper)-prev)*rate; prev=upper; }
+    else break;
+  }
+  return tax;
+}
+
+function monthSelectOptions(selected){
+  return MONTH_SHORT.map((m,i)=>`<option value="${i+1}" ${i+1===selected?'selected':''}>${m}</option>`).join('');
+}
+
+function renderPeriodList(containerId, periods){
+  const list = document.getElementById(containerId);
+  list.innerHTML = '';
+  periods.forEach((p,i)=>{
+    const row = document.createElement('div');
+    row.className = 'period-row';
+    row.innerHTML = `
+      <select data-i="${i}" data-f="from">${monthSelectOptions(p.from)}</select>
+      <span class="to-sep">ถึง</span>
+      <select data-i="${i}" data-f="to">${monthSelectOptions(p.to)}</select>
+      <input type="number" step="100" value="${p.amount}" data-i="${i}" data-f="amount" placeholder="บาท">
+      <button class="del" data-i="${i}" aria-label="ลบช่วงเวลา">&times;</button>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function bindPeriodList(containerId, periods, onChange){
+  const list = document.getElementById(containerId);
+  list.querySelectorAll('select,input').forEach(el=>{
+    el.addEventListener('input', e=>{
+      const i = +e.target.dataset.i, f = e.target.dataset.f;
+      periods[i][f] = f==='amount' ? (parseFloat(e.target.value)||0) : parseInt(e.target.value);
+      onChange();
+    });
+  });
+  list.querySelectorAll('.del').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      periods.splice(+e.target.dataset.i,1);
+      renderPeriodList(containerId, periods);
+      bindPeriodList(containerId, periods, onChange);
+      onChange();
+    });
+  });
+}
+
+function refreshSalary(){
+  renderPeriodList('salaryList', data.salaryPeriods);
+  bindPeriodList('salaryList', data.salaryPeriods, ()=>{ syncTaxIncome(); computeAll(); saveData(); });
+}
+function refreshExtra(){
+  renderPeriodList('extraList', data.extraPeriods);
+  bindPeriodList('extraList', data.extraPeriods, ()=>{ computeAll(); saveData(); });
+}
+
+function syncTaxIncome(){
+  if(data._taxIncomeManual) return;
+  const total = data.salaryPeriods.reduce((s,p)=>{
+    let span = p.to>=p.from ? (p.to-p.from+1) : (12-p.from+1+p.to);
+    return s + span*(parseFloat(p.amount)||0);
+  },0);
+  data.taxIncome = total;
+  document.getElementById('taxIncome').value = data.taxIncome;
+}
+
+function renderFixList(){
+  const list = document.getElementById('fixList');
+  list.innerHTML = '';
+  data.fixCosts.forEach((item,i)=>{
+    const row = document.createElement('div');
+    row.className = 'list-row';
+    row.innerHTML = `
+      <input type="text" class="name-input" value="${item.name}" data-i="${i}" data-f="name">
+      <input type="number" step="0.01" value="${item.amount}" data-i="${i}" data-f="amount">
+      <button class="del" data-i="${i}" aria-label="ลบ">&times;</button>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const i = +e.target.dataset.i, f = e.target.dataset.f;
+      data.fixCosts[i][f] = f==='amount' ? (parseFloat(e.target.value)||0) : e.target.value;
+      computeAll(); saveData();
+    });
+  });
+  list.querySelectorAll('.del').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      data.fixCosts.splice(+e.target.dataset.i,1);
+      renderFixList(); computeAll(); saveData();
+    });
+  });
+}
+
+function computeAll(){
+  const incomeMain = amountForMonth(data.salaryPeriods, currentMonth);
+  const incomeExtra = amountForMonth(data.extraPeriods, currentMonth);
+  const income = incomeMain + incomeExtra;
+  const fixTotal = data.fixCosts.reduce((s,i)=>s+(parseFloat(i.amount)||0),0);
+  const food = parseFloat(data.foodCost)||0;
+
+  const taxIncome = parseFloat(data.taxIncome)||0;
+  const expenseDed = Math.min(taxIncome*0.5, 100000);
+  let deduct;
+  if(data.taxDeductMode==='itemized'){
+    const ssf = Math.min(parseFloat(data.taxSSF)||0, 875);
+    const monthlyDeduct = ssf + (parseFloat(data.taxLife)||0) + (parseFloat(data.taxFund)||0) + (parseFloat(data.taxOther)||0);
+    deduct = monthlyDeduct*12;
+    document.getElementById('taxDeductSum').textContent = fmt(monthlyDeduct);
+  } else {
+    deduct = parseFloat(data.taxDeduct)||0;
+  }
+  const taxable = Math.max(0, taxIncome - expenseDed - 60000 - deduct);
+  const taxAnnual = calcThaiTax(taxable);
+  const taxMonthly = taxAnnual/12;
+
+  const price = parseFloat(data.carPrice)||0;
+  const down = parseFloat(data.carDown)||0;
+  const rate = parseFloat(data.carRate)||0;
+  const months = parseFloat(data.carMonths)||1;
+  const loan = Math.max(0, price-down);
+  const interest = loan*(rate/100)*(months/12);
+  const installment = (loan+interest)/months;
+  const insEst = (parseFloat(data.insAnnual)||0)/12;
+  const monthlyKm = (parseFloat(data.estKm)||0)*(parseFloat(data.estDays)||0);
+  const maintEst = monthlyKm * (parseFloat(data.maintCostPerKm)||0);
+  const insVal = data.insMode==='estimate' ? insEst : (parseFloat(data.estInsurance)||0);
+  const maintVal = data.maintMode==='estimate' ? maintEst : (parseFloat(data.estMaintenance)||0);
+  const estFuelCost = (parseFloat(data.estKm)||0)/(parseFloat(data.estKmpl)||1)*(parseFloat(data.estFuelPrice)||0)*(parseFloat(data.estDays)||0);
+  const estTotal = estFuelCost + insVal + maintVal;
+  const running = data.carRunningMode==='estimate' ? estTotal : (parseFloat(data.carRunning)||0);
+  const carMonthlyTotal = installment + running;
+
+  let net = income - fixTotal - food;
+  const breakdownParts = [
+    `<span>รายได้ <b>${fmt(income)}</b></span>`,
+    `<span>Fix cost <b>-${fmt(fixTotal)}</b></span>`,
+    `<span>กินข้าว <b>-${fmt(food)}</b></span>`
+  ];
+  if(data.taxOn){ net -= taxMonthly; breakdownParts.push(`<span>ภาษี <b>-${fmt(taxMonthly)}</b></span>`); }
+  if(data.carOn){ net -= carMonthlyTotal; breakdownParts.push(`<span>ค่ารถ <b>-${fmt(carMonthlyTotal)}</b></span>`); }
+
+  document.getElementById('fixTotal').textContent = fmt(fixTotal);
+  document.getElementById('taxTaxable').textContent = fmt(taxable);
+  document.getElementById('taxAnnual').textContent = fmt(taxAnnual);
+  document.getElementById('taxMonthly').textContent = fmt(taxMonthly);
+  document.getElementById('carInstallment').textContent = fmt(installment);
+  document.getElementById('carMonthlyTotal').textContent = fmt(carMonthlyTotal);
+  document.getElementById('estFuelCost').textContent = fmt(estFuelCost);
+  document.getElementById('insEstOut').textContent = fmt(insEst);
+  document.getElementById('maintEstOut').textContent = fmt(maintEst);
+
+  const netEl = document.getElementById('netResult');
+  netEl.textContent = fmt(net);
+  netEl.classList.toggle('neg', net<0);
+  document.getElementById('breakdown').innerHTML = breakdownParts.join('');
+}
+
+function bindSimple(){
+  const map = {foodCost:'foodCost', taxIncome:'taxIncome', taxDeduct:'taxDeduct',
+    carPrice:'carPrice', carDown:'carDown', carRate:'carRate', carMonths:'carMonths', carRunning:'carRunning',
+    estKm:'estKm', estDays:'estDays', estKmpl:'estKmpl', estFuelPrice:'estFuelPrice', estInsurance:'estInsurance', estMaintenance:'estMaintenance',
+    insAnnual:'insAnnual', maintCostPerKm:'maintCostPerKm',
+    taxSSF:'taxSSF', taxLife:'taxLife', taxFund:'taxFund', taxOther:'taxOther'};
+  Object.keys(map).forEach(id=>{
+    document.getElementById(id).addEventListener('input', e=>{
+      data[map[id]] = parseFloat(e.target.value)||0;
+      computeAll(); saveData();
+    });
+  });
+  document.getElementById('taxIncome').addEventListener('input', ()=>{ data._taxIncomeManual = true; });
+
+  document.getElementById('taxSwitch').addEventListener('click', e=>{
+    data.taxOn = !data.taxOn;
+    e.target.classList.toggle('on', data.taxOn);
+    computeAll(); saveData();
+  });
+  document.getElementById('taxDeductModeSwitch').addEventListener('click', e=>{
+    data.taxDeductMode = data.taxDeductMode==='itemized' ? 'total' : 'itemized';
+    const on = data.taxDeductMode==='itemized';
+    e.target.classList.toggle('on', on);
+    document.getElementById('taxDeductTotalRow').style.display = on ? 'none' : 'flex';
+    document.getElementById('taxDeductItemFields').style.display = on ? 'block' : 'none';
+    computeAll(); saveData();
+  });
+  document.getElementById('carSwitch').addEventListener('click', e=>{
+    data.carOn = !data.carOn;
+    e.target.classList.toggle('on', data.carOn);
+    computeAll(); saveData();
+  });
+  document.getElementById('carEstSwitch').addEventListener('click', e=>{
+    data.carRunningMode = data.carRunningMode==='estimate' ? 'manual' : 'estimate';
+    const on = data.carRunningMode==='estimate';
+    e.target.classList.toggle('on', on);
+    document.getElementById('carEstFields').style.display = on ? 'block' : 'none';
+    document.getElementById('carRunningManualRow').style.display = on ? 'none' : 'flex';
+    computeAll(); saveData();
+  });
+  document.getElementById('insEstSwitch').addEventListener('click', e=>{
+    data.insMode = data.insMode==='estimate' ? 'manual' : 'estimate';
+    const on = data.insMode==='estimate';
+    e.target.classList.toggle('on', on);
+    document.getElementById('insEstFields').style.display = on ? 'block' : 'none';
+    document.getElementById('insManualRow').style.display = on ? 'none' : 'flex';
+    computeAll(); saveData();
+  });
+  document.getElementById('maintEstSwitch').addEventListener('click', e=>{
+    data.maintMode = data.maintMode==='estimate' ? 'manual' : 'estimate';
+    const on = data.maintMode==='estimate';
+    e.target.classList.toggle('on', on);
+    document.getElementById('maintEstFields').style.display = on ? 'block' : 'none';
+    document.getElementById('maintManualRow').style.display = on ? 'none' : 'flex';
+    computeAll(); saveData();
+  });
+
+  document.getElementById('addSalary').addEventListener('click', ()=>{
+    data.salaryPeriods.push({from:1, to:12, amount:0});
+    refreshSalary(); syncTaxIncome(); computeAll(); saveData();
+  });
+  document.getElementById('addExtra').addEventListener('click', ()=>{
+    data.extraPeriods.push({from:1, to:1, amount:0});
+    refreshExtra(); computeAll(); saveData();
+  });
+  document.getElementById('addFix').addEventListener('click', ()=>{
+    data.fixCosts.push({name:'รายการใหม่', amount:0});
+    renderFixList(); computeAll(); saveData();
+  });
+
+  document.getElementById('saveBtn').addEventListener('click', ()=>{ persistData(); });
+  document.getElementById('addYearBtn').addEventListener('click', ()=>{
+    const maxY = knownYears.length ? Math.max(...knownYears) : currentYear;
+    switchYear(maxY+1);
+  });
+}
+
+function fillInputs(){
+  document.getElementById('foodCost').value = data.foodCost;
+  document.getElementById('taxIncome').value = data.taxIncome;
+  document.getElementById('taxDeduct').value = data.taxDeduct;
+  document.getElementById('carPrice').value = data.carPrice;
+  document.getElementById('carDown').value = data.carDown;
+  document.getElementById('carRate').value = data.carRate;
+  document.getElementById('carMonths').value = data.carMonths;
+  document.getElementById('carRunning').value = data.carRunning;
+  document.getElementById('estKm').value = data.estKm;
+  document.getElementById('estDays').value = data.estDays;
+  document.getElementById('estKmpl').value = data.estKmpl;
+  document.getElementById('estFuelPrice').value = data.estFuelPrice;
+  document.getElementById('estInsurance').value = data.estInsurance;
+  document.getElementById('estMaintenance').value = data.estMaintenance;
+  document.getElementById('insAnnual').value = data.insAnnual;
+  document.getElementById('maintCostPerKm').value = data.maintCostPerKm;
+  document.getElementById('taxSSF').value = data.taxSSF;
+  document.getElementById('taxLife').value = data.taxLife;
+  document.getElementById('taxFund').value = data.taxFund;
+  document.getElementById('taxOther').value = data.taxOther;
+  const deductOn = data.taxDeductMode==='itemized';
+  document.getElementById('taxDeductModeSwitch').classList.toggle('on', deductOn);
+  document.getElementById('taxDeductTotalRow').style.display = deductOn ? 'none' : 'flex';
+  document.getElementById('taxDeductItemFields').style.display = deductOn ? 'block' : 'none';
+  const insOn = data.insMode==='estimate';
+  document.getElementById('insEstSwitch').classList.toggle('on', insOn);
+  document.getElementById('insEstFields').style.display = insOn ? 'block' : 'none';
+  document.getElementById('insManualRow').style.display = insOn ? 'none' : 'flex';
+  const maintOn = data.maintMode==='estimate';
+  document.getElementById('maintEstSwitch').classList.toggle('on', maintOn);
+  document.getElementById('maintEstFields').style.display = maintOn ? 'block' : 'none';
+  document.getElementById('maintManualRow').style.display = maintOn ? 'none' : 'flex';
+  const estOn = data.carRunningMode==='estimate';
+  document.getElementById('carEstSwitch').classList.toggle('on', estOn);
+  document.getElementById('carEstFields').style.display = estOn ? 'block' : 'none';
+  document.getElementById('carRunningManualRow').style.display = estOn ? 'none' : 'flex';
+  document.getElementById('taxSwitch').classList.toggle('on', data.taxOn);
+  document.getElementById('carSwitch').classList.toggle('on', data.carOn);
+}
+
+function render(){
+  fillInputs();
+  refreshSalary();
+  refreshExtra();
+  renderFixList();
+  bindSimple();
+  computeAll();
+}
+
+loadData();
+</script>
+</body>
+</html>
