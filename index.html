@@ -179,13 +179,13 @@
   .aim-chip:hover { background: var(--teal-bg); }
   .aim-chip input[type=checkbox] { display: none; }
   .aim-chip-check {
-    width: 16px; height: 16px; min-width: 16px; border-radius: 4px;
-    border: 2px solid var(--border); margin-top: 2px;
+    width: 20px; height: 20px; min-width: 20px; border-radius: 6px;
+    border: 2px solid var(--border); margin-top: 1px;
     display: flex; align-items: center; justify-content: center;
-    transition: background .15s, border-color .15s;
+    font-size: 11px; font-weight: 800; color: var(--border); text-transform: lowercase;
+    transition: background .15s, border-color .15s, color .15s;
   }
-  .aim-chip:has(input:checked) .aim-chip-check { background: var(--teal); border-color: var(--teal); }
-  .aim-chip:has(input:checked) .aim-chip-check::after { content: '✓'; color: white; font-size: 10px; font-weight: 700; }
+  .aim-chip:has(input:checked) .aim-chip-check { background: var(--teal); border-color: var(--teal); color: white; }
   .aim-chip-body { display: flex; flex-direction: column; gap: 2px; }
   .aim-chip-label { font-size: 12px; font-weight: 700; color: var(--text-muted); transition: color .15s; }
   .aim-chip:hover .aim-chip-label { color: var(--teal); }
@@ -519,16 +519,16 @@
           <label>จุดมุ่งหมายในการตรวจติดตาม</label>
           <span class="label-en">Monitoring Objectives</span>
           <div class="aims-chips">
-            <label class="aim-chip"><input type="checkbox" name="aim" value="Plume" checked><div class="aim-chip-check"></div><div class="aim-chip-body"><span class="aim-chip-label">การตรวจติดตามกลุ่มก๊าซคาร์บอน (PLUME)</span><span class="aim-chip-desc">ติดตามการเคลื่อนตัวและทิศทางการแพร่กระจายของคาร์บอนภายในชั้นหินกักเก็บ</span></div></label>
-            <label class="aim-chip"><input type="checkbox" name="aim" value="Top-seal"><div class="aim-chip-check"></div><div class="aim-chip-body"><span class="aim-chip-label">ประเมินชั้นหินปิดกั้น (TOP-SEAL)</span><span class="aim-chip-desc">ประเมินความสมบูรณ์ของชั้นหินปิดกั้น</span></div></label>
-            <label class="aim-chip"><input type="checkbox" name="aim" value="Overburden"><div class="aim-chip-check"></div><div class="aim-chip-body"><span class="aim-chip-label">ติดตามชั้นหินเหนือแหล่งกักเก็บ (OVERBURDEN)</span><span class="aim-chip-desc">สังเกตการณ์ความเปลี่ยนแปลงของโครงสร้างชั้นหินและของไหลที่อยู่เหนือบริเวณแหล่งกักเก็บ</span></div></label>
-            <label class="aim-chip"><input type="checkbox" name="aim" value="Processes"><div class="aim-chip-check"></div><div class="aim-chip-body"><span class="aim-chip-label">วิเคราะห์กระบวนการในชั้นกักเก็บ (PROCESSES)</span><span class="aim-chip-desc">วิเคราะห์และจำลองกระบวนการที่เกิดขึ้นในและรอบชั้นกักเก็บเทียบกับระยะเวลา</span></div></label>
-            <label class="aim-chip"><input type="checkbox" name="aim" value="Calibrate"><div class="aim-chip-check"></div><div class="aim-chip-body"><span class="aim-chip-label">การเทียบแบบจำลอง (CALIBRATE)</span><span class="aim-chip-desc">เน้นการตรวจติดตามเพื่อปรับเทียบความถูกต้องของแบบจำลอง โดยอ้างอิงจากข้อมูลที่ตรวจวัดได้จริงในขณะนั้น</span></div></label>
-            <label class="aim-chip"><input type="checkbox" name="aim" value="Detect"><div class="aim-chip-check"></div><div class="aim-chip-body"><span class="aim-chip-label">ตรวจจับการรั่วไหล (DETECT)</span><span class="aim-chip-desc">เฝ้าระวังและตรวจจับคาร์บอนที่อาจหลุดรอดออกนอกพื้นที่กักเก็บ หรือรั่วไหลขึ้นสู่ผิวดิน</span></div></label>
-            <label class="aim-chip"><input type="checkbox" name="aim" value="Quantify"><div class="aim-chip-check"></div><div class="aim-chip-body"><span class="aim-chip-label">วัดปริมาณคาร์บอน (QUANTIFY)</span><span class="aim-chip-desc">ประเมินอัตราการรั่วไหลและคำนวณปริมาณคาร์บอนที่หลุดรอดออกจากแหล่งกักเก็บ</span></div></label>
-            <label class="aim-chip"><input type="checkbox" name="aim" value="Seismicity"><div class="aim-chip-check"></div><div class="aim-chip-body"><span class="aim-chip-label">ติดตามการสั่นสะเทือน (SEISMICITY)</span><span class="aim-chip-desc">ติดตามการสั่นสะเทือนจากแผ่นดินไหวและจากการอัดฉีด</span></div></label>
-            <label class="aim-chip"><input type="checkbox" name="aim" value="Wellbores"><div class="aim-chip-check"></div><div class="aim-chip-body"><span class="aim-chip-label">ติดตามหลุมเจาะ (WELLBORES)</span><span class="aim-chip-desc">ติดตามความสมบูรณ์ของหลุมเจาะ</span></div></label>
-            <label class="aim-chip"><input type="checkbox" name="aim" value="Environmental"><div class="aim-chip-check"></div><div class="aim-chip-body"><span class="aim-chip-label">การตรวจติดตามสิ่งแวดล้อม (ENVIRONMENTAL)</span><span class="aim-chip-desc">ติดตามผลกระทบต่อระบบนิเวศ คุณภาพดิน น้ำ และอากาศบริเวณโครงการ</span></div></label>
+            <label class="aim-chip"><input type="checkbox" name="aim" value="Plume" checked><div class="aim-chip-check">a</div><div class="aim-chip-body"><span class="aim-chip-label">การตรวจติดตามกลุ่มก๊าซคาร์บอน (PLUME)</span><span class="aim-chip-desc">ติดตามการเคลื่อนตัวและทิศทางการแพร่กระจายของคาร์บอนภายในชั้นหินกักเก็บ</span></div></label>
+            <label class="aim-chip"><input type="checkbox" name="aim" value="Top-seal"><div class="aim-chip-check">b</div><div class="aim-chip-body"><span class="aim-chip-label">ประเมินชั้นหินปิดกั้น (TOP-SEAL)</span><span class="aim-chip-desc">ประเมินความสมบูรณ์ของชั้นหินปิดกั้น</span></div></label>
+            <label class="aim-chip"><input type="checkbox" name="aim" value="Overburden"><div class="aim-chip-check">c</div><div class="aim-chip-body"><span class="aim-chip-label">ติดตามชั้นหินเหนือแหล่งกักเก็บ (OVERBURDEN)</span><span class="aim-chip-desc">สังเกตการณ์ความเปลี่ยนแปลงของโครงสร้างชั้นหินและของไหลที่อยู่เหนือบริเวณแหล่งกักเก็บ</span></div></label>
+            <label class="aim-chip"><input type="checkbox" name="aim" value="Processes"><div class="aim-chip-check">d</div><div class="aim-chip-body"><span class="aim-chip-label">วิเคราะห์กระบวนการในชั้นกักเก็บ (PROCESSES)</span><span class="aim-chip-desc">วิเคราะห์และจำลองกระบวนการที่เกิดขึ้นในและรอบชั้นกักเก็บเทียบกับระยะเวลา</span></div></label>
+            <label class="aim-chip"><input type="checkbox" name="aim" value="Calibrate"><div class="aim-chip-check">e</div><div class="aim-chip-body"><span class="aim-chip-label">การเทียบแบบจำลอง (CALIBRATE)</span><span class="aim-chip-desc">เน้นการตรวจติดตามเพื่อปรับเทียบความถูกต้องของแบบจำลอง โดยอ้างอิงจากข้อมูลที่ตรวจวัดได้จริงในขณะนั้น</span></div></label>
+            <label class="aim-chip"><input type="checkbox" name="aim" value="Detect"><div class="aim-chip-check">f</div><div class="aim-chip-body"><span class="aim-chip-label">ตรวจจับการรั่วไหล (DETECT)</span><span class="aim-chip-desc">เฝ้าระวังและตรวจจับคาร์บอนที่อาจหลุดรอดออกนอกพื้นที่กักเก็บ หรือรั่วไหลขึ้นสู่ผิวดิน</span></div></label>
+            <label class="aim-chip"><input type="checkbox" name="aim" value="Quantify"><div class="aim-chip-check">g</div><div class="aim-chip-body"><span class="aim-chip-label">วัดปริมาณคาร์บอน (QUANTIFY)</span><span class="aim-chip-desc">ประเมินอัตราการรั่วไหลและคำนวณปริมาณคาร์บอนที่หลุดรอดออกจากแหล่งกักเก็บ</span></div></label>
+            <label class="aim-chip"><input type="checkbox" name="aim" value="Seismicity"><div class="aim-chip-check">h</div><div class="aim-chip-body"><span class="aim-chip-label">ติดตามการสั่นสะเทือน (SEISMICITY)</span><span class="aim-chip-desc">ติดตามการสั่นสะเทือนจากแผ่นดินไหวและจากการอัดฉีด</span></div></label>
+            <label class="aim-chip"><input type="checkbox" name="aim" value="Wellbores"><div class="aim-chip-check">i</div><div class="aim-chip-body"><span class="aim-chip-label">ติดตามหลุมเจาะ (WELLBORES)</span><span class="aim-chip-desc">ติดตามความสมบูรณ์ของหลุมเจาะ</span></div></label>
+            <label class="aim-chip"><input type="checkbox" name="aim" value="Environmental"><div class="aim-chip-check">j</div><div class="aim-chip-body"><span class="aim-chip-label">การตรวจติดตามสิ่งแวดล้อม (ENVIRONMENTAL)</span><span class="aim-chip-desc">ติดตามผลกระทบต่อระบบนิเวศ คุณภาพดิน น้ำ และอากาศบริเวณโครงการ</span></div></label>
           </div>
         </div>
       </div>
@@ -694,10 +694,10 @@ const LANDUSE_OFFSHORE = [
 ];
 
 const ALL_ZONES = [
-  { value:"A", label:"พื้นที่ชั้นบรรยากาศ",       desc:"ตรวจวัดก๊าซและองค์ประกอบในชั้นบรรยากาศเหนือพื้นที่โครงการ",  for:"both" },
-  { value:"B", label:"พื้นที่บริเวณใกล้ผิวดิน",    desc:"ตรวจติดตามการเปลี่ยนแปลงใกล้ผิวดิน ชั้นดิน และน้ำบาดาล",    for:"onshore" },
-  { value:"C", label:"พื้นที่บริเวณใกล้พื้นทะเล", desc:"ตรวจติดตามการเปลี่ยนแปลงในบริเวณพื้นทะเลและน้ำทะเล",         for:"offshore" },
-  { value:"D", label:"พื้นที่ใต้ผิวดิน",            desc:"ตรวจติดตามชั้นหินกักเก็บ ชั้นหินปิดกั้น และบริเวณรอบหลุมเจาะ", for:"both" },
+  { value:"1", label:"พื้นที่ชั้นบรรยากาศ",       desc:"ตรวจวัดก๊าซและองค์ประกอบในชั้นบรรยากาศเหนือพื้นที่โครงการ",  for:"both" },
+  { value:"2", label:"พื้นที่บริเวณใกล้ผิวดิน",    desc:"ตรวจติดตามการเปลี่ยนแปลงใกล้ผิวดิน ชั้นดิน และน้ำบาดาล",    for:"onshore" },
+  { value:"3", label:"พื้นที่บริเวณใกล้พื้นทะเล", desc:"ตรวจติดตามการเปลี่ยนแปลงในบริเวณพื้นทะเลและน้ำทะเล",         for:"offshore" },
+  { value:"4", label:"พื้นที่ใต้ผิวดิน",            desc:"ตรวจติดตามชั้นหินกักเก็บ ชั้นหินปิดกั้น และบริเวณรอบหลุมเจาะ", for:"both" },
 ];
 
 function updateZoneOptions() {
