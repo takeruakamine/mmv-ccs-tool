@@ -325,14 +325,18 @@
   .aim-score-panel { display: none; }
   .aim-score-panel.open { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px 14px; padding-top: 10px; border-top: 1px dashed var(--border); margin-top: 4px; }
   .aim-score-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-  .aim-score-name { font-size: 9px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
+  .aim-score-name { font-size: 11px; color: var(--text); font-weight: 700; line-height: 1.3; }
+  .aim-score-en { font-weight: 500; color: var(--text-muted); margin-left: 4px; }
+  .aim-selected { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 22px; margin: 14px 0 6px; }
+  .aim-selected-title { font-size: 15px; font-weight: 800; color: var(--text); }
+  .aim-selected-items { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 22px; }
+  .aim-sel-item { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-muted); }
+  .aim-sel-code { width: 36px; height: 36px; border-radius: 50%; background: #C00000; color: #fff; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
   .aim-score-num {
-    font-size: 12px; font-weight: 800; min-width: 22px; height: 22px;
+    font-size: 12px; font-weight: 800; min-width: 22px; height: 22px; padding: 0 7px;
     border-radius: 6px; display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
-  .aim-dimmed .aim-score-name { opacity: 0.45; }
-  .aim-dimmed .aim-score-num  { opacity: 0.45; }
 
   /* ─── REPORT BUTTON ─── */
   .btn-report {
@@ -528,7 +532,7 @@
             <label class="aim-chip"><input type="checkbox" name="aim" value="Quantify"><div class="aim-chip-check">c</div><div class="aim-chip-body"><span class="aim-chip-label">การวัดปริมาณคาร์บอน (Quantify)</span><span class="aim-chip-desc">ประเมินอัตราการรั่วไหลและคำนวณปริมาณคาร์บอนที่หลุดรอดออกจากแหล่งกักเก็บ</span></div></label>
             <label class="aim-chip"><input type="checkbox" name="aim" value="Processes"><div class="aim-chip-check">d</div><div class="aim-chip-body"><span class="aim-chip-label">วิเคราะห์กระบวนการในชั้นกักเก็บ (Processes)</span><span class="aim-chip-desc">วิเคราะห์และจำลองกระบวนการที่เกิดขึ้นในและรอบชั้นกักเก็บเทียบกับระยะเวลา</span></div></label>
           </div>
-          <div class="aim-group-head"><span class="aim-group-title">ความแน่นหนา</span><span class="aim-group-sub">กันไม่ให้ CO₂ รั่วออก</span></div>
+          <div class="aim-group-head"><span class="aim-group-title">บูรณาภาพการกักเก็บ</span><span class="aim-group-sub">กันไม่ให้ CO₂ รั่วออก</span></div>
           <div class="aims-chips">
             <label class="aim-chip"><input type="checkbox" name="aim" value="Overburden"><div class="aim-chip-check">e</div><div class="aim-chip-body"><span class="aim-chip-label">การติดตามชั้นหินเหนือแหล่งกักเก็บ (Overburden)</span><span class="aim-chip-desc">สังเกตการณ์ความเปลี่ยนแปลงของโครงสร้างชั้นหินและของไหลที่อยู่เหนือบริเวณแหล่งกักเก็บ</span></div></label>
             <label class="aim-chip"><input type="checkbox" name="aim" value="Wellbores"><div class="aim-chip-check">f</div><div class="aim-chip-body"><span class="aim-chip-label">การติดตามหลุมเจาะ (Wellbores)</span><span class="aim-chip-desc">ติดตามความสมบูรณ์ของหลุมเจาะ</span></div></label>
@@ -574,9 +578,14 @@
           <div class="s-chip"><span class="s-chip-label">ความลึก</span><span class="s-chip-val" id="out-depth">—</span></div>
           <div class="s-chip"><span class="s-chip-label">การใช้พื้นที่</span><span class="s-chip-val" id="out-landuse">—</span></div>
           <div class="s-chip"><span class="s-chip-label">กลุ่มเทคโนโลยี</span><span class="s-chip-val" id="out-package">—</span></div>
-          <div class="s-chip"><span class="s-chip-label">วัตถุประสงค์</span><span class="s-chip-val" id="out-aims">—</span></div>
+          <span id="out-aims" hidden>—</span>
           <div class="s-chip"><span class="s-chip-label">พื้นที่เป้าหมาย</span><span class="s-chip-val" id="out-zones">—</span></div>
         </div>
+      </div>
+
+      <div class="aim-selected" id="aim-selected" style="display:none;">
+        <span class="aim-selected-title">จุดมุ่งหมายที่เลือก</span>
+        <span class="aim-selected-items" id="aim-selected-items"></span>
       </div>
 
       <div class="results-grid" id="results-grid"></div>
@@ -746,99 +755,110 @@ function toggleWaterDepth() {
 
 
 /* ─── TECHNOLOGY DATA (static example, 18 core + 9 extra shown) ─── */
-const AIM_KEYS = ["Plume","Top-seal","Overburden","Processes","Calibrate","Detect","Quantify","Seismicity","Wellbores","Environmental"];
-const AIM_LABEL = { "Plume":"กลุ่มก๊าซ","Top-seal":"ชั้นปิดกั้น","Overburden":"ชั้นหินเหนือ","Processes":"กระบวนการ","Calibrate":"เทียบโมเดล","Detect":"ตรวจจับรั่ว","Quantify":"วัดปริมาณ","Seismicity":"แผ่นดินไหว","Wellbores":"หลุมเจาะ","Environmental":"สิ่งแวดล้อม" };
+const AIM_INFO = {
+  "Plume":        { code:"O1",  th:"กระจุกการไหล",        en:"Plume" },
+  "Calibrate":    { code:"O2",  th:"เทียบแบบจำลอง",       en:"Calibrate" },
+  "Quantify":     { code:"O3",  th:"วัดปริมาณคาร์บอน",    en:"Quantify" },
+  "Processes":    { code:"O4",  th:"กระบวนการในแหล่ง",    en:"Processes" },
+  "Overburden":   { code:"O5",  th:"ชั้นหินเหนือแหล่ง",   en:"Overburden" },
+  "Wellbores":    { code:"O6",  th:"หลุมเจาะ",            en:"Wellbores" },
+  "Top-seal":     { code:"O7",  th:"ชั้นหินปิดกั้น",      en:"Top Seal" },
+  "Detect":       { code:"O8",  th:"ตรวจจับการรั่วไหล",   en:"Detection" },
+  "Seismicity":   { code:"O9",  th:"การสั่นสะเทือน",      en:"Seismicity" },
+  "Environmental":{ code:"O10", th:"สิ่งแวดล้อม",         en:"Environmental" },
+};
+const AIM_KEYS = Object.keys(AIM_INFO);
 
 const TECHS = [
   // D4 — คลื่นไหวสะเทือน
   { id:1,  name:"การตรวจติดตามแผ่นดินไหวขนาดเล็ก (Microseismic Monitoring)", type:"Core", loc:"both",
     cat:"both", stds:["ISO 27914:2017 §8.4","Energy Act 2008","EPA Class VI UIC"],
-    aimScores:{"Plume":3,"Top-seal":4,"Overburden":3,"Processes":3,"Calibrate":3,"Detect":4,"Quantify":2,"Seismicity":5,"Wellbores":3,"Environmental":1},
+    aimScores:{"Plume":2.66,"Top-seal":4.00,"Overburden":3.01,"Processes":3.32,"Calibrate":2.64,"Detect":3.75,"Quantify":2.09,"Seismicity":5.00,"Wellbores":3.26,"Environmental":1.04},
     desc:"ตรวจจับเหตุการณ์แผ่นดินไหวขนาดเล็กที่เกิดจากการอัดฉีดคาร์บอน เป็นข้อกำหนดพื้นฐานสำหรับทุกโครงการ CCS (อ้างอิง: D4.3.1)" },
   { id:2,  name:"การสำรวจคลื่นไหวสะเทือนเชิงเวลา (4D Time-lapse Seismic)", type:"Core", loc:"both",
     cat:"conformance", stds:["ISO 27914:2017 §8.3","EU CCS Directive 2009/31/EC Annex II"],
-    aimScores:{"Plume":5,"Top-seal":4,"Overburden":4,"Processes":4,"Calibrate":5,"Detect":3,"Quantify":4,"Seismicity":2,"Wellbores":1,"Environmental":1},
+    aimScores:{"Plume":5.00,"Top-seal":4.24,"Overburden":4.23,"Processes":4.08,"Calibrate":4.77,"Detect":3.10,"Quantify":3.65,"Seismicity":2.29,"Wellbores":1.00,"Environmental":1.28},
     desc:"สำรวจคลื่นไหวสะเทือน 3 มิติซ้ำตามช่วงเวลา เพื่อสร้างภาพการเปลี่ยนแปลงของกลุ่มคาร์บอนในชั้นหินกักเก็บ (อ้างอิง: D4.1.3)" },
   { id:3,  name:"การสำรวจคลื่นไหวสะเทือนแนวดิ่ง (Vertical Seismic Profiling: VSP)", type:"Core", loc:"both",
     cat:"conformance", stds:["ISO 27914:2017 §8.3"],
-    aimScores:{"Plume":4,"Top-seal":3,"Overburden":3,"Processes":3,"Calibrate":4,"Detect":2,"Quantify":3,"Seismicity":2,"Wellbores":1,"Environmental":1},
+    aimScores:{"Plume":4.17,"Top-seal":3.16,"Overburden":2.74,"Processes":2.78,"Calibrate":4.43,"Detect":2.39,"Quantify":3.27,"Seismicity":2.45,"Wellbores":1.01,"Environmental":1.00},
     desc:"สำรวจคลื่นไหวสะเทือนในหลุมเจาะแนวดิ่ง ให้ภาพความละเอียดสูงบริเวณใกล้หลุมฉีด (อ้างอิง: D4.2.1)" },
   { id:4,  name:"การสำรวจคลื่นไหวสะเทือนระหว่างหลุมเจาะ (Crosswell Seismic)", type:"Core", loc:"both",
     cat:"conformance", stds:["ISO 27914:2017 §8.3","EU CCS Directive 2009/31/EC Annex II"],
-    aimScores:{"Plume":4,"Top-seal":3,"Overburden":3,"Processes":3,"Calibrate":4,"Detect":3,"Quantify":3,"Seismicity":2,"Wellbores":1,"Environmental":1},
+    aimScores:{"Plume":3.86,"Top-seal":3.05,"Overburden":2.81,"Processes":2.96,"Calibrate":4.34,"Detect":3.18,"Quantify":3.07,"Seismicity":1.57,"Wellbores":1.19,"Environmental":1.00},
     desc:"สำรวจคลื่นไหวสะเทือนระหว่างหลุมฉีดและหลุมติดตาม ให้ภาพความละเอียดสูงของพื้นที่กักเก็บ (อ้างอิง: D4.2.2)" },
   // D2 — หลุมเจาะ
   { id:5,  name:"อุปกรณ์เฝ้าระวังอุณหภูมิและความดัน (Pressure & Temperature Surveillance)", type:"Core", loc:"both",
     cat:"both", stds:["ISO 27914:2017 §8.2","Energy Act 2008","EPA Class VI UIC §146.90","EU CCS Directive 2009/31/EC Annex II"],
-    aimScores:{"Plume":3,"Top-seal":3,"Overburden":2,"Processes":4,"Calibrate":4,"Detect":4,"Quantify":3,"Seismicity":2,"Wellbores":5,"Environmental":1},
+    aimScores:{"Plume":2.93,"Top-seal":2.91,"Overburden":2.08,"Processes":4.00,"Calibrate":3.65,"Detect":4.01,"Quantify":3.23,"Seismicity":2.09,"Wellbores":4.99,"Environmental":1.38},
     desc:"ตรวจวัดอุณหภูมิและความดันในหลุมเจาะอย่างต่อเนื่อง เป็นข้อมูลพื้นฐานสำหรับทุกปฏิบัติการอัดฉีดคาร์บอน (อ้างอิง: D2.2.1)" },
   { id:6,  name:"อุปกรณ์หยั่งธรณีตรวจสอบคุณภาพซีเมนต์ (Cement Bond / Imaging Log)", type:"Core", loc:"both",
     cat:"containment", stds:["ISO 27914:2017 §7.5","Energy Act 2008","EPA Class VI UIC §146.88"],
-    aimScores:{"Plume":1,"Top-seal":2,"Overburden":1,"Processes":2,"Calibrate":2,"Detect":3,"Quantify":1,"Seismicity":1,"Wellbores":5,"Environmental":1},
+    aimScores:{"Plume":1.00,"Top-seal":1.93,"Overburden":1.38,"Processes":1.98,"Calibrate":2.02,"Detect":2.57,"Quantify":1.00,"Seismicity":1.00,"Wellbores":4.59,"Environmental":1.18},
     desc:"ตรวจสอบคุณภาพซีเมนต์และท่อกรุในหลุมเจาะ เพื่อยืนยันความสมบูรณ์และป้องกันการรั่วไหลของคาร์บอน (อ้างอิง: D2.1.1)" },
   { id:7,  name:"การเก็บตัวอย่างของไหลในหลุมเจาะ (Downhole Fluid Sampling)", type:"Core", loc:"both",
     cat:"conformance", stds:["ISO 27914:2017 §8.5","EPA Class VI UIC §146.90"],
-    aimScores:{"Plume":3,"Top-seal":2,"Overburden":2,"Processes":4,"Calibrate":3,"Detect":3,"Quantify":3,"Seismicity":1,"Wellbores":3,"Environmental":2},
+    aimScores:{"Plume":3.35,"Top-seal":1.64,"Overburden":2.11,"Processes":3.97,"Calibrate":2.98,"Detect":2.76,"Quantify":3.35,"Seismicity":1.11,"Wellbores":2.96,"Environmental":1.97},
     desc:"เก็บตัวอย่างน้ำก่อนหินและน้ำที่ละลายคาร์บอนจากหลุมเจาะ โดยใช้ภาชนะรับความดันหรือ U-tube (อ้างอิง: D2.3)" },
   // D3 — ไฟเบอร์ออปติก
   { id:8,  name:"ระบบเซ็นเซอร์วัดอุณหภูมิแบบกระจาย (Distributed Temperature Sensing: DTS)", type:"Core", loc:"both",
     cat:"conformance", stds:["ISO 27914:2017 §8.2","EPA Class VI UIC §146.90"],
-    aimScores:{"Plume":3,"Top-seal":2,"Overburden":2,"Processes":3,"Calibrate":3,"Detect":3,"Quantify":2,"Seismicity":1,"Wellbores":4,"Environmental":1},
+    aimScores:{"Plume":3.39,"Top-seal":2.44,"Overburden":2.04,"Processes":3.05,"Calibrate":3.15,"Detect":2.83,"Quantify":2.27,"Seismicity":1.00,"Wellbores":3.98,"Environmental":1.35},
     desc:"ระบบใยแก้วนำแสงวัดอุณหภูมิต่อเนื่องตลอดความลึกหลุมเจาะ ช่วยตรวจจับตำแหน่งกลุ่มคาร์บอนได้แม่นยำ (อ้างอิง: D3.1)" },
   { id:9,  name:"เทคโนโลยีวัดคลื่นไหวสะเทือนแบบกระจาย (Distributed Acoustic Sensing: DAS)", type:"Core", loc:"both",
     cat:"both", stds:["ISO 27914:2017 §8.3","ISO 27914:2017 §8.4"],
-    aimScores:{"Plume":3,"Top-seal":3,"Overburden":3,"Processes":3,"Calibrate":3,"Detect":3,"Quantify":2,"Seismicity":4,"Wellbores":4,"Environmental":1},
+    aimScores:{"Plume":2.94,"Top-seal":2.81,"Overburden":2.79,"Processes":2.58,"Calibrate":3.14,"Detect":3.09,"Quantify":1.96,"Seismicity":4.02,"Wellbores":3.99,"Environmental":1.38},
     desc:"ใยแก้วนำแสงตรวจจับคลื่นเสียงตลอดแนวหลุมเจาะ ให้ข้อมูลกิจกรรมแผ่นดินไหวและลักษณะการไหลของไหล (อ้างอิง: D3.3)" },
   // D1 — หยั่งธรณี
   { id:10, name:"อุปกรณ์หยั่งธรณีความต้านทานไฟฟ้า (Resistivity Log)", type:"Core", loc:"both",
     cat:"conformance", stds:["ISO 27914:2017 §8.2","EU CCS Directive 2009/31/EC Annex II"],
-    aimScores:{"Plume":4,"Top-seal":3,"Overburden":2,"Processes":3,"Calibrate":4,"Detect":2,"Quantify":3,"Seismicity":1,"Wellbores":2,"Environmental":1},
+    aimScores:{"Plume":3.78,"Top-seal":2.99,"Overburden":2.01,"Processes":3.29,"Calibrate":4.28,"Detect":2.05,"Quantify":3.37,"Seismicity":1.30,"Wellbores":1.83,"Environmental":1.38},
     desc:"วัดความต้านทานไฟฟ้าของชั้นหินเพื่อระบุขอบเขตของคาร์บอนในชั้นกักเก็บ ใช้ทั้งหลุมเปิดและหลุมที่มีท่อกรุ (อ้างอิง: D1.1.1)" },
   { id:11, name:"อุปกรณ์หยั่งธรณีนิวตรอนแบบพัลส์ (Pulsed Neutron Log)", type:"Core", loc:"both",
     cat:"conformance", stds:["ISO 27914:2017 §8.2","EPA Class VI UIC §146.90"],
-    aimScores:{"Plume":4,"Top-seal":2,"Overburden":2,"Processes":3,"Calibrate":4,"Detect":3,"Quantify":3,"Seismicity":1,"Wellbores":2,"Environmental":1},
+    aimScores:{"Plume":3.64,"Top-seal":2.17,"Overburden":2.26,"Processes":3.01,"Calibrate":3.96,"Detect":3.42,"Quantify":3.42,"Seismicity":1.31,"Wellbores":1.98,"Environmental":1.00},
     desc:"ตรวจวัดความอิ่มตัวของของไหลในชั้นหินผ่านท่อกรุได้โดยตรง เหมาะสำหรับการตรวจติดตามคาร์บอนระยะยาว (อ้างอิง: D1.2.1)" },
   // D5 — แรงโน้มถ่วง
   { id:12, name:"เครื่องมือวัดแรงโน้มถ่วงที่ผิวดิน (Surface Gravimetry)", type:"Core", loc:"both",
     cat:"conformance", stds:["ISO 27914:2017 §8.3","EU CCS Directive 2009/31/EC Annex II"],
-    aimScores:{"Plume":4,"Top-seal":2,"Overburden":2,"Processes":3,"Calibrate":4,"Detect":2,"Quantify":3,"Seismicity":1,"Wellbores":1,"Environmental":1},
+    aimScores:{"Plume":3.79,"Top-seal":2.00,"Overburden":1.64,"Processes":3.22,"Calibrate":3.92,"Detect":1.95,"Quantify":2.56,"Seismicity":1.00,"Wellbores":1.07,"Environmental":1.39},
     desc:"วัดการเปลี่ยนแปลงสนามแรงโน้มถ่วงเพื่อติดตามการเปลี่ยนแปลงความหนาแน่นอันเนื่องมาจากคาร์บอน (อ้างอิง: D5.1)" },
   // Extra
   { id:13, name:"การสำรวจความต้านทานไฟฟ้าพื้นผิว (Surface ERT)", type:"Extra", loc:"both",
     cat:"containment", stds:["ISO 27914:2017 §8.6","EU CCS Directive 2009/31/EC Annex II"],
-    aimScores:{"Plume":2,"Top-seal":2,"Overburden":3,"Processes":2,"Calibrate":2,"Detect":4,"Quantify":2,"Seismicity":1,"Wellbores":1,"Environmental":3},
+    aimScores:{"Plume":1.62,"Top-seal":2.26,"Overburden":2.77,"Processes":2.11,"Calibrate":2.23,"Detect":4.41,"Quantify":2.15,"Seismicity":1.12,"Wellbores":1.00,"Environmental":2.83},
     desc:"สร้างภาพความต้านทานไฟฟ้าของชั้นหินบริเวณใกล้ผิวดิน ใช้ตรวจจับการเปลี่ยนแปลงจากคาร์บอน (อ้างอิง: D6.1.1)" },
   { id:14, name:"การถ่ายภาพด้วยคลื่นแม่เหล็กไฟฟ้า (Electromagnetic Tomography: EM)", type:"Extra", loc:"offshore",
     cat:"conformance", stds:["ISO 27914:2017 §8.3","OSPAR Decision 2007/2"],
-    aimScores:{"Plume":3,"Top-seal":2,"Overburden":2,"Processes":3,"Calibrate":3,"Detect":3,"Quantify":2,"Seismicity":1,"Wellbores":1,"Environmental":2},
+    aimScores:{"Plume":3.07,"Top-seal":2.24,"Overburden":2.40,"Processes":2.99,"Calibrate":3.20,"Detect":2.67,"Quantify":1.75,"Seismicity":1.08,"Wellbores":1.41,"Environmental":2.34},
     desc:"วิธีแม่เหล็กไฟฟ้าเหมาะกับการตรวจติดตามคาร์บอนในแหล่งเก็บใต้ท้องทะเล (อ้างอิง: D6.2)" },
   { id:15, name:"การตรวจติดตามด้วยโซนาร์ใต้ทะเล (Seafloor Sonar & Acoustic)", type:"Extra", loc:"offshore",
     cat:"containment", stds:["ISO 27914:2017 §8.6","OSPAR Decision 2007/2","Energy Act 2008"],
-    aimScores:{"Plume":1,"Top-seal":2,"Overburden":2,"Processes":2,"Calibrate":1,"Detect":5,"Quantify":3,"Seismicity":2,"Wellbores":1,"Environmental":4},
+    aimScores:{"Plume":1.00,"Top-seal":1.63,"Overburden":2.15,"Processes":2.39,"Calibrate":1.26,"Detect":5.00,"Quantify":2.83,"Seismicity":1.92,"Wellbores":1.28,"Environmental":4.02},
     desc:"เซ็นเซอร์อะคูสติกและโซนาร์บนพื้นทะเลตรวจจับฟองก๊าซและติดตามระบบนิเวศใต้ทะเล (อ้างอิง: C2)" },
   { id:16, name:"ภาพถ่ายดาวเทียมแบบอินเทอร์เฟอโรเมตรี (InSAR)", type:"Extra", loc:"onshore",
     cat:"containment", stds:["ISO 27914:2017 §8.6","Energy Act 2008","EPA Class VI UIC §146.90","EU CCS Directive 2009/31/EC Annex II"],
-    aimScores:{"Plume":2,"Top-seal":3,"Overburden":4,"Processes":3,"Calibrate":3,"Detect":3,"Quantify":2,"Seismicity":3,"Wellbores":1,"Environmental":2},
+    aimScores:{"Plume":1.73,"Top-seal":2.56,"Overburden":3.65,"Processes":3.35,"Calibrate":2.60,"Detect":2.86,"Quantify":1.87,"Seismicity":3.24,"Wellbores":1.00,"Environmental":2.01},
     desc:"ตรวจจับการเปลี่ยนแปลงระดับผิวดินระดับมิลลิเมตรจากดาวเทียมเหนือบริเวณอัดฉีดคาร์บอน (อ้างอิง: B2.1)" },
   { id:17, name:"ห้องวัดฟลักซ์ก๊าซคาร์บอนจากดิน (Soil CO₂ Flux Chamber)", type:"Extra", loc:"onshore",
     cat:"containment", stds:["ISO 27914:2017 §8.6","Energy Act 2008","EPA Class VI UIC §146.90"],
-    aimScores:{"Plume":1,"Top-seal":2,"Overburden":2,"Processes":2,"Calibrate":2,"Detect":5,"Quantify":4,"Seismicity":1,"Wellbores":1,"Environmental":5},
+    aimScores:{"Plume":1.00,"Top-seal":1.82,"Overburden":1.84,"Processes":1.66,"Calibrate":2.40,"Detect":5.00,"Quantify":4.27,"Seismicity":1.00,"Wellbores":1.02,"Environmental":4.94},
     desc:"วัดการไหลของก๊าซคาร์บอนจากผิวดินตามเส้นสำรวจ ใช้ตรวจจับการรั่วไหลในพื้นที่บนชายฝั่ง (อ้างอิง: B3.1)" },
   { id:18, name:"การวัดฟลักซ์ก๊าซแบบ Eddy Covariance", type:"Extra", loc:"onshore",
     cat:"containment", stds:["ISO 27914:2017 §8.6","EU CCS Directive 2009/31/EC Annex II"],
-    aimScores:{"Plume":1,"Top-seal":1,"Overburden":1,"Processes":2,"Calibrate":2,"Detect":4,"Quantify":3,"Seismicity":1,"Wellbores":1,"Environmental":5},
+    aimScores:{"Plume":1.00,"Top-seal":1.09,"Overburden":1.16,"Processes":1.61,"Calibrate":1.91,"Detect":3.73,"Quantify":3.38,"Seismicity":1.00,"Wellbores":1.04,"Environmental":5.00},
     desc:"วัดการแลกเปลี่ยนก๊าซคาร์บอนในระดับระบบนิเวศอย่างต่อเนื่องเหนือพื้นที่อัดฉีด (อ้างอิง: A3.1)" },
   { id:19, name:"สารตรวจติดตามใต้ผิวดิน (Subsurface Tracer Monitoring)", type:"Extra", loc:"both",
     cat:"conformance", stds:["ISO 27914:2017 §8.5","EPA Class VI UIC §146.90"],
-    aimScores:{"Plume":5,"Top-seal":3,"Overburden":3,"Processes":4,"Calibrate":4,"Detect":4,"Quantify":3,"Seismicity":1,"Wellbores":2,"Environmental":1},
+    aimScores:{"Plume":4.96,"Top-seal":3.23,"Overburden":2.72,"Processes":4.19,"Calibrate":4.34,"Detect":3.67,"Quantify":3.03,"Seismicity":1.26,"Wellbores":2.02,"Environmental":1.41},
     desc:"ฉีดสารติดตาม (เช่น Kr, SF₆, ¹³C) เข้าไปกับคาร์บอนเพื่อยืนยันทิศทางการเคลื่อนที่และการผสม (อ้างอิง: D2.1.3)" },
   { id:20, name:"ระบบวัดความผิดปกติทางความร้อนแบบกระจาย (Distributed Thermal Perturbation Sensor)", type:"Extra", loc:"both",
     cat:"conformance", stds:["ISO 27914:2017 §8.2"],
-    aimScores:{"Plume":3,"Top-seal":2,"Overburden":2,"Processes":3,"Calibrate":3,"Detect":3,"Quantify":2,"Seismicity":1,"Wellbores":3,"Environmental":1},
+    aimScores:{"Plume":2.69,"Top-seal":2.31,"Overburden":1.90,"Processes":2.93,"Calibrate":2.92,"Detect":2.62,"Quantify":1.82,"Seismicity":1.00,"Wellbores":2.79,"Environmental":1.00},
     desc:"ตรวจจับความผิดปกติทางความร้อนในหลุมเจาะเพื่อระบุตำแหน่งที่คาร์บอนซึมผ่าน (อ้างอิง: D3.2)" },
   { id:21, name:"เทคโนโลยีการถ่ายภาพความหนาแน่น 3 มิติด้วยอนุภาคมิวออน (Muon Tomography)", type:"Extra", loc:"both",
     cat:"conformance", stds:["ISO 27914:2017 §8.3"],
-    aimScores:{"Plume":3,"Top-seal":2,"Overburden":3,"Processes":3,"Calibrate":3,"Detect":2,"Quantify":2,"Seismicity":1,"Wellbores":1,"Environmental":1},
+    aimScores:{"Plume":3.25,"Top-seal":1.92,"Overburden":2.97,"Processes":2.84,"Calibrate":2.98,"Detect":1.66,"Quantify":2.27,"Seismicity":1.27,"Wellbores":1.28,"Environmental":1.31},
     desc:"ใช้อนุภาคมิวออนจากรังสีคอสมิกสร้างภาพ 3 มิติของความหนาแน่นชั้นหิน โดยไม่รบกวนชั้นหินกักเก็บ (อ้างอิง: D7)" },
 ];
 
@@ -860,7 +880,12 @@ function showResults() {
   document.getElementById("out-depth").textContent    = dep;
   document.getElementById("out-landuse").textContent  = landuses.length ? landuses.join(", ") : "—";
   document.getElementById("out-package").textContent  = pkg;
-  document.getElementById("out-aims").textContent     = aims.length ? aims.join(", ") : "—";
+  const selAims = AIM_KEYS.filter(k => aims.includes(k));
+  document.getElementById("out-aims").textContent     = selAims.length ? selAims.map(k => `${AIM_INFO[k].th} (${AIM_INFO[k].en})`).join(", ") : "—";
+  const strip = document.getElementById("aim-selected");
+  strip.style.display = selAims.length ? "flex" : "none";
+  document.getElementById("aim-selected-items").innerHTML = selAims.map(k =>
+    `<span class="aim-sel-item"><span class="aim-sel-code">${AIM_INFO[k].code}</span>${AIM_INFO[k].en}</span>`).join("");
   document.getElementById("out-zones").textContent    = zones.length ? zones.join(", ") : "—";
 
   const isOffshore = loc === "Offshore" || loc === "Both";
@@ -883,21 +908,22 @@ function showResults() {
   const scoreKeys = aims.length ? aims : AIM_KEYS;
   const ranked = shown.map(t => {
     const rawAvg = scoreKeys.reduce((s, k) => s + (t.aimScores[k] || 0), 0) / scoreKeys.length;
-    const pct    = Math.round(rawAvg / 5 * 100);
+    const pct    = Math.round(rawAvg / 5 * 10000) / 100;
     const recClass = pct >= 80 ? "rec-high" : pct >= 60 ? "rec-mid" : "rec-low";
     return { ...t, pct, recClass };
   }).sort((a, b) => b.pct - a.pct);
   grid.innerHTML = ranked.map((t, i) => {
     const { pct, recClass } = t;
-    const aimRows = [...AIM_KEYS]
-      .map(k => ({ k, score: t.aimScores[k] || 0, isSelected: aims.length === 0 || aims.includes(k) }))
+    const aimRows = scoreKeys
+      .map(k => ({ k, score: t.aimScores[k] || 0 }))
       .sort((a, b) => b.score - a.score)
-      .map(({ k, score, isSelected }) => {
-        const bg  = score === 5 ? "#166534" : score === 4 ? "#1d4ed8" : score === 3 ? "#b45309" : score === 2 ? "#b91c1c" : "#4b5563";
+      .map(({ k, score }) => {
+        const band = Math.round(score);
+        const bg  = band === 5 ? "#166534" : band === 4 ? "#1d4ed8" : band === 3 ? "#b45309" : band === 2 ? "#b91c1c" : "#4b5563";
         const fg  = "#fff";
-        return `<div class="aim-score-row${isSelected ? "" : " aim-dimmed"}">
-          <span class="aim-score-name">${AIM_LABEL[k]}</span>
-          <span class="aim-score-num" style="background:${bg};color:${fg};">${score}</span>
+        return `<div class="aim-score-row">
+          <span class="aim-score-name">${AIM_INFO[k].th} <span class="aim-score-en">${AIM_INFO[k].en}</span></span>
+          <span class="aim-score-num" style="background:${bg};color:${fg};">${score.toFixed(2)}</span>
         </div>`;
       }).join("");
     return `
@@ -905,7 +931,7 @@ function showResults() {
       <div class="tech-card-top">
         <div class="tech-num">${i + 1}</div>
         <div class="tech-name">${t.name}</div>
-        <div class="tech-pct-badge">${pct}%</div>
+        <div class="tech-pct-badge">${pct.toFixed(2)}%</div>
         <div class="expand-chevron">›</div>
       </div>
       <div class="tech-card-body">
